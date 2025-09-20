@@ -168,7 +168,7 @@ elif selected == "Dashboard":
    # -------------------------------------------------------------------- 
    c1, c2 = st.columns(2)
    with c1:
-       # Sort Manufacturers by avg prices
+       # << Sort Manufacturers by avg prices>>
        st.markdown("### Manufacturers by Avg Price")
        manu_price = filtered_df.groupby("Manufacturer")["Price"].mean().nlargest(5).reset_index()
        fig = px.bar(manu_price, x="Price", y="Manufacturer", orientation="h", text_auto=".0f",
@@ -187,7 +187,7 @@ elif selected == "Dashboard":
    st.divider()
 
    # -------------------------------------------------------------------- 
-   # Price vs Year of manufacture
+   # << Price vs Year of manufacture>>
    st.markdown("### Price Trend by Year of manufacture")
    year_price = filtered_df.groupby("Year of manufacture")["Price"].mean().reset_index()
    fig = px.line(year_price, x="Year of manufacture", y="Price", markers=True)
@@ -206,7 +206,7 @@ elif selected == "Dashboard":
 
    st.divider()
    # -------------------------------------------------------------------- 
-   # PIE CHART
+   # << PIE CHART>>
    st.markdown("### Fuel Type over Total Price")
    #fuel_share = filtered_df["Fuel type"].value_counts().reset_index() # Count num of each fuel type
    fuel_share = filtered_df.groupby("Fuel type")["Price"].sum().reset_index() # Count the sum of prices for each fuel type
@@ -223,11 +223,11 @@ elif selected == "Dashboard":
 
 
    # -------------------------------------------------------------------- 
-   # Total Price over years
+   # << Total Price over years>>
 
    st.markdown("### Total Price Over Years")
    
-   # Group by Year of manufacture and sum its price
+   # << Group by Year of manufacture and sum its price>>
    price_by_year = (filtered_df.groupby("Year of manufacture")["Price"].sum().reset_index()) 
    fig = px.line(price_by_year, x="Year of manufacture", y="Price", markers=True,
     labels={"Price": "Total Price", "Year of manufacture": "Year"},)
@@ -259,8 +259,7 @@ elif selected == "Dashboard":
     filtered_df.groupby("Manufacturer", as_index=False).agg(avg_price=("Price", "mean"),avg_mileage=("Mileage", "mean"),count=("Model", "count")).sort_values("count", ascending=False))
    if not brand_pos.empty:
     fig = px.scatter(
-        brand_pos, x="avg_mileage", y="avg_price",
-        size="count", hover_name="Manufacturer", text="Manufacturer",size_max=50)
+        brand_pos, x="avg_mileage", y="avg_price", size="count", hover_name="Manufacturer", text="Manufacturer",size_max=50) # >> The bubbles customization 
     fig.update_traces(textposition="top center")
     fig.update_layout(xaxis_title="Avg Mileage", yaxis_title="Avg Price")
     st.plotly_chart(fig, use_container_width=True)
