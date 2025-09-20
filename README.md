@@ -24,7 +24,7 @@ A **Streamlit app** with machine learning integration allows users to interactiv
 
 ---
 ## Presentation 
-Project Presentation : 
+Project Presentation : (https://www.canva.com/design/DAGzhivjC6U/pup8nbeFAGQz-hVkwQb8Dg/edit)
 
 ## How to Run
 1. Clone Repository
