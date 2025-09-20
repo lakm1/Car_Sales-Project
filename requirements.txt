@@ -4,3 +4,5 @@ streamlit
 statsmodels
 scikit-learn
 plotly
+millify
+seaborn
