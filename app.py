@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import streamlit as st
+from streamlit_option_menu import option_menu
 import plotly.express as px
 from millify import millify
 
@@ -25,8 +26,13 @@ This Dashboard lets you:
 Use the **sidebar filters** to customize the analysis.
 """) 
 
-tab1, tab2 = st.tabs(["📊 Dashboard", "🔮 Predictor"])
-
+#tab1, tab2 = st.tabs(["📊 Dashboard", "🔮 Predictor"])
+selected = option_menu(
+    None,
+    ["Dashboard", "Predictor"],
+    icons=["bar-chart", "magic"],
+    orientation="horizontal"
+)
 
 
 df = pd.read_csv("car_sales_data.csv")  
@@ -61,7 +67,8 @@ def predict_price(engine_size, year, mileage, fuel_type, manufacturer, model):
 
     return pred
 
-with tab2:
+#with tab2:
+if selected == "Predictor":
     st.subheader("Car Price Prediction")
 
     manufacturer = st.selectbox("Brand of Car", sorted(df["Manufacturer"].unique()))
@@ -82,7 +89,8 @@ with tab2:
         pred = predict_price(engine_size, year, mileage, fuel_type, manufacturer, model)
         st.success(f"Estimated price: **${pred:,.2f}**")
 
-with tab1:
+#with tab1:
+elif selected == "Dashboard":
    # Sidebar Filters 
    st.sidebar.header("  Filters")
 
@@ -124,7 +132,9 @@ with tab1:
         filtered_df = filtered_df[filtered_df["Fuel type"].isin(fuel_filter)]
 
 
+# -------------------------------------------------------------------- 
 # Dashboard Visuals
+#  # --------------------------------------------------------------------
    st.subheader("Data Insights")
 
    # Some info (Might added in KPIs)
@@ -152,21 +162,33 @@ with tab1:
    top_brand_count = filtered_df["Manufacturer"].value_counts().max() # Take the num of counts
    k4.metric("Top Brand", top_brand, f"{top_brand_count}")
 
-
    # -------------------------------------------------------------------- 
    # Plots 
 
    # -------------------------------------------------------------------- 
-   # Sort Manufacturers by avg prices
-   st.markdown("### Manufacturers by Avg Price")
-   manu_price = filtered_df.groupby("Manufacturer")["Price"].mean().nlargest(5).reset_index()
-   fig = px.bar(manu_price, x="Price", y="Manufacturer", orientation="h", text_auto=".0f",
+   c1, c2 = st.columns(2)
+   with c1:
+       # Sort Manufacturers by avg prices
+       st.markdown("### Manufacturers by Avg Price")
+       manu_price = filtered_df.groupby("Manufacturer")["Price"].mean().nlargest(5).reset_index()
+       fig = px.bar(manu_price, x="Price", y="Manufacturer", orientation="h", text_auto=".0f",
                      color="Price", color_continuous_scale="Blues")
-   st.plotly_chart(fig, use_container_width=True)
+       st.plotly_chart(fig, use_container_width=True)
+   with c2:
+       st.markdown("### Top 10 Models")
+       top_models = filtered_df["Model"].value_counts().head(10).reset_index()
+       top_models.columns = ["Model", "Count"]
+       fig = px.bar(
+        top_models, x="Count", y="Model",
+        orientation="h", text="Count")
+       fig.update_traces(textposition="outside")
+       st.plotly_chart(fig, use_container_width=True)
+
+   st.divider()
 
    # -------------------------------------------------------------------- 
    # Price vs Year of manufacture
-   st.markdown("### Price Trend by Year ")
+   st.markdown("### Price Trend by Year of manufacture")
    year_price = filtered_df.groupby("Year of manufacture")["Price"].mean().reset_index()
    fig = px.line(year_price, x="Year of manufacture", y="Price", markers=True)
    st.plotly_chart(fig, use_container_width=True)
@@ -182,6 +204,7 @@ with tab1:
                          hover_data=["Model"], trendline="ols", opacity=0.6)
    st.plotly_chart(fig, use_container_width=True)
 
+   st.divider()
    # -------------------------------------------------------------------- 
    # PIE CHART
    st.markdown("### Fuel Type over Total Price")
@@ -204,15 +227,46 @@ with tab1:
 
    st.markdown("### Total Price Over Years")
    
-   # Group by Year of manufacture and sum prices
-   price_by_year = (filtered_df.groupby("Year of manufacture")["Price"].sum().reset_index())
+   # Group by Year of manufacture and sum its price
+   price_by_year = (filtered_df.groupby("Year of manufacture")["Price"].sum().reset_index()) 
    fig = px.line(price_by_year, x="Year of manufacture", y="Price", markers=True,
     labels={"Price": "Total Price", "Year of manufacture": "Year"},)
    fig.update_traces(line=dict(width=3, color="orange"))
-   fig.update_layout( yaxis_tickformat="~s",   # format numbers as 100M, 600M
+   fig.update_layout( yaxis_tickformat="~s",   # format numbers 
     margin=dict(l=20, r=20, t=50, b=20),)
    st.plotly_chart(fig, use_container_width=True)
 
+   st.divider()
+   
+   # ----------------------------------
+   st.markdown("### Correlation (Price, Mileage, Engine size, Year)")
+   num_cols = [
+       c for c in ["Price", "Mileage", "Engine size", "Year of manufacture"] if c in filtered_df.columns] 
+   if len(num_cols) >= 2:
+    corr = filtered_df[num_cols].corr()
+    fig = px.imshow(
+        corr, text_auto=".2f", zmin=-1, zmax=1,
+        color_continuous_scale="RdBu", title="Correlation Matrix"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+   st.divider()
+
+   # -------------------------------------------------------------------- 
+   # << Avg Mileage vs Avg Price with brands>>
+   st.markdown("### Avg Mileage vs Avg Price")
+   brand_pos = (
+    filtered_df.groupby("Manufacturer", as_index=False).agg(avg_price=("Price", "mean"),avg_mileage=("Mileage", "mean"),count=("Model", "count")).sort_values("count", ascending=False))
+   if not brand_pos.empty:
+    fig = px.scatter(
+        brand_pos, x="avg_mileage", y="avg_price",
+        size="count", hover_name="Manufacturer", text="Manufacturer",size_max=50)
+    fig.update_traces(textposition="top center")
+    fig.update_layout(xaxis_title="Avg Mileage", yaxis_title="Avg Price")
+    st.plotly_chart(fig, use_container_width=True)
+
+
+   st.markdown("---")  # horizontal line for separation
    ""
    ""
    
