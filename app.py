@@ -3,6 +3,7 @@ import pandas as pd
 import pickle
 import streamlit as st
 import plotly.express as px
+from millify import millify
 
 
 
@@ -124,45 +125,72 @@ with tab1:
 
 
 # Dashboard Visuals
-   st.subheader("📊 Data Insights")
+   st.subheader("Data Insights")
+
+   # Some info (Might added in KPIs)
+   avg_price = filtered_df['Price'].mean()
+   median_mileage = filtered_df["Mileage"].median()
+   brands_count = filtered_df["Manufacturer"].nunique()
+   max_Engine = filtered_df['Engine size'].max()
 
    #  KPIs 
    k1, k2, k3, k4 = st.columns(4)
+
+   # Cars Count
    k1.metric("Cars", f"{len(filtered_df):,}")
-   k2.metric("Avg Price", f"{filtered_df['Price'].mean():,.0f}")
-   k3.metric("Median Mileage", f"{filtered_df['Mileage'].median():,.2f} km")
-   k4.metric("Avg Engine Size", f"{filtered_df['Engine size'].mean():.1f} L")
+
+   # Total Value
+   total_value = filtered_df["Price"].sum()
+   k2.metric("Total Price", f"£{millify(total_value, precision=2)}")
+   
+   # Models count
+   models_count = filtered_df["Model"].nunique()
+   k3.metric("Models Count", f"{models_count:,}")
+
+   # The Top brand
+   top_brand = filtered_df["Manufacturer"].value_counts().idxmax() # The id of top brand
+   top_brand_count = filtered_df["Manufacturer"].value_counts().max() # Take the num of counts
+   k4.metric("Top Brand", top_brand, f"{top_brand_count}")
 
 
-   st.markdown("**Top Manufacturers by Avg Price**")
-   manu_price = filtered_df.groupby("Manufacturer")["Price"].mean().nlargest(10).reset_index()
+   # -------------------------------------------------------------------- 
+   # Plots 
+
+   # -------------------------------------------------------------------- 
+   # Sort Manufacturers by avg prices
+   st.markdown("### Manufacturers by Avg Price")
+   manu_price = filtered_df.groupby("Manufacturer")["Price"].mean().nlargest(5).reset_index()
    fig = px.bar(manu_price, x="Price", y="Manufacturer", orientation="h", text_auto=".0f",
                      color="Price", color_continuous_scale="Blues")
    st.plotly_chart(fig, use_container_width=True)
 
-
-   st.markdown("**Price Trend by Year**")
+   # -------------------------------------------------------------------- 
+   # Price vs Year of manufacture
+   st.markdown("### Price Trend by Year ")
    year_price = filtered_df.groupby("Year of manufacture")["Price"].mean().reset_index()
    fig = px.line(year_price, x="Year of manufacture", y="Price", markers=True)
    st.plotly_chart(fig, use_container_width=True)
-   
-   st.markdown("**Mileage vs Price (Fuel Highlighted)**")
+
+   # -------------------------------------------------------------------- 
+   st.markdown("### Mileage vs Price **(Fuel Highlighted)**")
    fig = px.scatter(filtered_df, x="Mileage", y="Price", color="Fuel type",
                          hover_data=["Manufacturer", "Model"], opacity=0.6)
    st.plotly_chart(fig, use_container_width=True)
 
-   st.markdown("**Engine Size vs Price (Trendline)**")
+   st.markdown("### Engine Size vs Price **(Trendline)**")
    fig = px.scatter(filtered_df, x="Engine size", y="Price", color="Manufacturer",
                          hover_data=["Model"], trendline="ols", opacity=0.6)
    st.plotly_chart(fig, use_container_width=True)
 
+   # -------------------------------------------------------------------- 
    # PIE CHART
-   st.markdown("### Share of Cars by Fuel Type")
-   fuel_share = filtered_df["Fuel type"].value_counts().reset_index() # Count num of each fuel type
-   fuel_share.columns = ["Fuel type", "Count"] # Put them in df
+   st.markdown("### Fuel Type over Total Price")
+   #fuel_share = filtered_df["Fuel type"].value_counts().reset_index() # Count num of each fuel type
+   fuel_share = filtered_df.groupby("Fuel type")["Price"].sum().reset_index() # Count the sum of prices for each fuel type
+   fuel_share.columns = ["Fuel type", "Total Value"] # Put them in df
 
    fig = px.pie(
-    fuel_share, names="Fuel type", values="Count",
+    fuel_share, names="Fuel type", values="Total Value",
     color="Fuel type", hole=0
     )
    # Showing the percent & label in the pie chart
@@ -170,20 +198,19 @@ with tab1:
    fig.update_layout(margin=dict(l=10, r=20, t=50, b=10))
    st.plotly_chart(fig, use_container_width=True)
 
-   # Histogram > Price Distribution
-   st.markdown("### Price Distribution")
-   fig = px.histogram(
-    filtered_df, x="Price", nbins=50,
-    color_discrete_sequence=["#1f77b4"],
-    height=520
-    )
-   fig.update_layout(
-    margin=dict(l=10, r=20, t=50, b=10),
-    xaxis_title="Price",
-    yaxis_title="Count",
-    xaxis=dict(tickformat="~s", tickfont=dict(size=13)),
-    yaxis=dict(tickfont=dict(size=13))
-    )
+
+   # -------------------------------------------------------------------- 
+   # Total Price over years
+
+   st.markdown("### Total Price Over Years")
+   
+   # Group by Year of manufacture and sum prices
+   price_by_year = (filtered_df.groupby("Year of manufacture")["Price"].sum().reset_index())
+   fig = px.line(price_by_year, x="Year of manufacture", y="Price", markers=True,
+    labels={"Price": "Total Price", "Year of manufacture": "Year"},)
+   fig.update_traces(line=dict(width=3, color="orange"))
+   fig.update_layout( yaxis_tickformat="~s",   # format numbers as 100M, 600M
+    margin=dict(l=20, r=20, t=50, b=20),)
    st.plotly_chart(fig, use_container_width=True)
 
    ""
