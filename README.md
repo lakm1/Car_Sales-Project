@@ -7,7 +7,7 @@ A **Streamlit app** with machine learning integration allows users to interactiv
 ---
 
 ##  Project Overview
-This project demonstrates the process of:
+
 - Exploring real-world car sales data (cleaning, handling outliers).  
 - Performing EDA with visualizations to uncover sales patterns and insights.  
 - Building machine learning models for price prediction.  
@@ -16,10 +16,10 @@ This project demonstrates the process of:
 
 ---
 
-##  Tech Stack
+##  Built With
 - **Python** (pandas, numpy, matplotlib, seaborn, scikit-learn)  
 - **Streamlit** (interactive app)  
-- **Machine Learning** (Linear Regression, other tested models)  
+- **Machine Learning** (Linear Regression)  
 - **Jupyter Notebook** (analysis & prototyping)  
 
 ---
@@ -40,7 +40,7 @@ Project Presentation :
    ```bash
    streamlit run app.py
    ```
-## Results & Insights
+## Project Outcomes
 
 Cleaned dataset improved prediction accuracy by removing outliers.
 
