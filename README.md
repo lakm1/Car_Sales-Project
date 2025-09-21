@@ -52,6 +52,12 @@ Dashboard enables real-time car price predictions for different scenarios.
 - Lama Almoutiry
 - Norah Bindaham
 - Turki Nabeel
+
+  
+---
+## Dashboard 
+Streamlit Dashboard link : (https://lakm1-car-sales-project-app-q45kom.streamlit.app/)
+
 ## References
 -Kaggle Dataset (https://www.kaggle.com/datasets/msnbehdani/mock-dataset-of-second-hand-car-sales)
 
